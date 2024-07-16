@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mysql:
+    build: .
+    container_name: mysql_container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: gitpod
+      MYSQL_PASSWORD: password
+    command: >
+      bash -c "
+        sudo service mysql start && 
+        mysql -e 'CREATE DATABASE IF NOT EXISTS mydatabase;' &&
+        mysql -e 'CREATE USER \"gitpod\"@\"localhost\" IDENTIFIED BY \"password\";' &&
+        mysql -e 'GRANT ALL PRIVILEGES ON mydatabase.* TO \"gitpod\"@\"localhost\";' &&
+        mysql -e 'FLUSH PRIVILEGES;' &&
+        tail -f /dev/null
+      "
+
+  phpmyadmin:
+    build: .
+    container_name: phpmyadmin_container
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    command: >
+      bash -c "
+        sudo service mysql start &&
+        phpmyadmin
+      "
+
+  vscode:
+    image: gitpod/workspace-full
+    container_name: vscode_container
+    depends_on:
+      - mysql
+      - phpmyadmin
+    ports:
+      - "3306:3306"
+      - "8080:8080"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: gitpod
+      MYSQL_PASSWORD: password
+    volumes:
+      - .:/workspace
+    command: >
+      bash -c "
+        code-server --bind-addr 0.0.0.0:8080 /workspace
+      "

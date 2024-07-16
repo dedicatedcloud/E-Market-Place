@@ -14,5 +14,5 @@ RUN sudo apt-get update && \
 RUN sudo sed -i "s/bind-address/#bind-address/g" /etc/mysql/mysql.conf.d/mysqld.cnf && \
     sudo service mysql restart
 
-# Expose phpMyAdmin port
-EXPOSE 8080
+# Expose ports
+EXPOSE 3306 8080
